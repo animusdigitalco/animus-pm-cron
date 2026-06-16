@@ -2,20 +2,17 @@
 # monthly Trello marketing card creation. Fires on Fly's `monthly` schedule.
 #
 # Deploy:  fly deploy
-# Manual run:  fly machine run --schedule monthly --region ord <image>
+# Schedule the cron machine:
+#   fly machine run --schedule monthly --region ord registry.fly.io/animus-pm-cron:latest
 
-app = "animus-pm-cron"
-primary_region = "ord"
+app = 'animus-pm-cron'
+primary_region = 'ord'
 
 [build]
 
-[env]
-
-# Scheduled machine config. The actual scheduling is set when the machine is
-# created via `fly machine run --schedule monthly`, not here — fly.toml drives
-# `fly deploy` defaults but we override per-machine for cron.
+# No [http_service] — this is a one-shot cron, not a web app.
 
 [[vm]]
-  cpu_kind = "shared"
+  cpu_kind = 'shared'
   cpus = 1
   memory_mb = 256

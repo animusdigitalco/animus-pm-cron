@@ -489,9 +489,12 @@ def create_marketing_cards_for(year: int, month: int) -> dict:
     if moved_to_done:
         log.info("Moved %d prior-month cards to DONE", moved_to_done)
 
-    # Build set of existing card names on MAIN CARDS for idempotency
-    existing = _trello_get(f"/lists/{LIST_MAIN_CARDS}/cards", {"fields": "name"}) or []
-    existing_names = {c["name"] for c in existing}
+    # Idempotency: check ALL cards on TEAM BOARD (every list + archived) for the
+    # target card name. Marketing cards may have been moved by humans into
+    # IN PRODUCTION THIS WEEK / WITH CLIENT / DONE — don't recreate a duplicate.
+    open_cards = _trello_get(f"/boards/{TEAM_BOARD}/cards", {"fields": "name"}) or []
+    closed_cards = _trello_get(f"/boards/{TEAM_BOARD}/cards/closed", {"fields": "name"}) or []
+    existing_names = {c["name"] for c in open_cards} | {c["name"] for c in closed_cards}
 
     last_day = calendar.monthrange(year, month)[1]
     card_due_iso = f"{year}-{month:02d}-{last_day:02d}T17:00:00.000Z"
