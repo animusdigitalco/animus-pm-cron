@@ -1,0 +1,21 @@
+# Animus PM cron — lightweight, no-LLM version of Pat that runs only the
+# monthly Trello marketing card creation. Fires on Fly's `monthly` schedule.
+#
+# Deploy:  fly deploy
+# Manual run:  fly machine run --schedule monthly --region ord <image>
+
+app = "animus-pm-cron"
+primary_region = "ord"
+
+[build]
+
+[env]
+
+# Scheduled machine config. The actual scheduling is set when the machine is
+# created via `fly machine run --schedule monthly`, not here — fly.toml drives
+# `fly deploy` defaults but we override per-machine for cron.
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory_mb = 256
