@@ -440,23 +440,51 @@ def _clamp_day(year: int, month: int, day: int) -> int:
     return min(day, last)
 
 
-# GMB tasks are WEEKLY (every Friday), not monthly. We generate one checklist
-# item per Friday in the production month, always assigned to Kyle.
-GMB_WEEKLY_ITEM_NAME = "GMB weekly: post updates + reply to new reviews"
+# GMB tasks are WEEKLY (every Friday). Each Friday, Kyle gets one checklist
+# item per work area — that way every Friday spells out exactly what to do.
+# Plus a single end-of-month item for the monthly insights pull.
+GMB_WEEKLY_ITEMS = [
+    "Post GMB updates (events, offers, photos)",
+    "Reply to all new reviews + monitor Q&A",
+    "Refresh GMB Q&A + photos / business info if needed",
+]
+GMB_MONTHLY_END_ITEM = (
+    "Monthly insights pull (calls, direction requests, searches) for client report"
+)
+_MONTH_ABBREV = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                 "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
 
 def _gmb_friday_items(year: int, month: int) -> list[dict]:
-    """Return one item per Friday in the given month, formatted for the checklist."""
+    """Generate the full GMB checklist for the target month:
+      - N Fridays × len(GMB_WEEKLY_ITEMS) weekly items
+      - + 1 monthly insights pull on the last day of the month
+    Always Kyle. Each item gets its own due date so Kyle's calendar shows the work."""
     last_day = calendar.monthrange(year, month)[1]
+    abbrev = _MONTH_ABBREV[month - 1]
     items = []
     for day in range(1, last_day + 1):
         if datetime.date(year, month, day).weekday() == 4:  # 4 = Friday
-            items.append({
-                "name": GMB_WEEKLY_ITEM_NAME,
-                "day": day,
-                "_gmb_friday": True,  # marker — create code labels with month abbrev
-            })
+            for wk_item in GMB_WEEKLY_ITEMS:
+                items.append({
+                    "name": f"{day} {abbrev} — {wk_item}",
+                    "day": day,
+                    "_gmb_kyle": True,
+                })
+    # End-of-month monthly insights pull
+    items.append({
+        "name": f"{last_day} {abbrev} — {GMB_MONTHLY_END_ITEM}",
+        "day": last_day,
+        "_gmb_kyle": True,
+    })
     return items
+
+
+def _normalize_card_name(name: str) -> str:
+    """For idempotency: lowercase + collapse whitespace so 'Ten Seven Security'
+    matches 'TenSeven Security' (the kind of human/migration spacing drift
+    that produced a dupe in June 2026)."""
+    return "".join(name.lower().split())
 
 
 # ─── Main entry point ─────────────────────────────────────────────────────────
@@ -511,9 +539,11 @@ def create_marketing_cards_for(year: int, month: int) -> dict:
     # Idempotency: check ALL cards on TEAM BOARD (every list + archived) for the
     # target card name. Marketing cards may have been moved by humans into
     # IN PRODUCTION THIS WEEK / WITH CLIENT / DONE — don't recreate a duplicate.
+    # Compare on NORMALIZED names so 'Ten Seven' and 'TenSeven' don't dupe.
     open_cards = _trello_get(f"/boards/{TEAM_BOARD}/cards", {"fields": "name"}) or []
     closed_cards = _trello_get(f"/boards/{TEAM_BOARD}/cards/closed", {"fields": "name"}) or []
-    existing_names = {c["name"] for c in open_cards} | {c["name"] for c in closed_cards}
+    existing_names = ({_normalize_card_name(c["name"]) for c in open_cards}
+                      | {_normalize_card_name(c["name"]) for c in closed_cards})
 
     last_day = calendar.monthrange(year, month)[1]
     card_due_iso = f"{year}-{month:02d}-{last_day:02d}T17:00:00.000Z"
@@ -522,8 +552,8 @@ def create_marketing_cards_for(year: int, month: int) -> dict:
 
     for client, services in TEMPLATE.items():
         title = f"{client} — {month_name} {year} Marketing"
-        if title in existing_names:
-            log.info("  · '%s' already exists, skipping", title)
+        if _normalize_card_name(title) in existing_names:
+            log.info("  · '%s' already exists (matched by normalized name), skipping", title)
             skipped.append(client)
             continue
 
@@ -571,10 +601,10 @@ def create_marketing_cards_for(year: int, month: int) -> dict:
                 # Append (Kyle) / (Jon) to item name AND assign as a real member
                 # (works on Standard/Premium plans — silently no-ops on Free).
                 base_name = it["name"]
-                if it.get("_gmb_friday"):
-                    owner = "Kyle"  # GMB weekly is always Kyle
-                    month_abbrev = MONTH_NAMES[month - 1][:3]
-                    display_name = f"{base_name} ({it['day']} {month_abbrev}) ({owner})"
+                if it.get("_gmb_kyle"):
+                    # GMB items already have date prefix baked into name; just tag owner
+                    owner = "Kyle"
+                    display_name = f"{base_name} (Kyle)"
                 else:
                     owner = _resolve_owner(client, service, base_name)
                     display_name = f"{base_name} ({owner})" if owner else base_name
