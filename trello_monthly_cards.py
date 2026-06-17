@@ -440,6 +440,25 @@ def _clamp_day(year: int, month: int, day: int) -> int:
     return min(day, last)
 
 
+# GMB tasks are WEEKLY (every Friday), not monthly. We generate one checklist
+# item per Friday in the production month, always assigned to Kyle.
+GMB_WEEKLY_ITEM_NAME = "GMB weekly: post updates + reply to new reviews"
+
+
+def _gmb_friday_items(year: int, month: int) -> list[dict]:
+    """Return one item per Friday in the given month, formatted for the checklist."""
+    last_day = calendar.monthrange(year, month)[1]
+    items = []
+    for day in range(1, last_day + 1):
+        if datetime.date(year, month, day).weekday() == 4:  # 4 = Friday
+            items.append({
+                "name": GMB_WEEKLY_ITEM_NAME,
+                "day": day,
+                "_gmb_friday": True,  # marker — create code labels with month abbrev
+            })
+    return items
+
+
 # ─── Main entry point ─────────────────────────────────────────────────────────
 
 def _move_prior_month_to_done(year: int, month: int) -> int:
@@ -536,7 +555,11 @@ def create_marketing_cards_for(year: int, month: int) -> dict:
         ordered_services = sorted(services.keys(),
             key=lambda s: SERVICE_ORDER.index(s) if s in SERVICE_ORDER else 99)
         for service in ordered_services:
-            items = services[service]
+            # GMB Management (including Tulsa / Oklahoma City variants) → weekly Fridays.
+            if service.startswith("GMB Management"):
+                items = _gmb_friday_items(year, month)
+            else:
+                items = services[service]
             if not items:
                 continue
             cl = _trello_post_form(f"/cards/{card_id}/checklists", {"name": service})
@@ -548,8 +571,13 @@ def create_marketing_cards_for(year: int, month: int) -> dict:
                 # Append (Kyle) / (Jon) to item name AND assign as a real member
                 # (works on Standard/Premium plans — silently no-ops on Free).
                 base_name = it["name"]
-                owner = _resolve_owner(client, service, base_name)
-                display_name = f"{base_name} ({owner})" if owner else base_name
+                if it.get("_gmb_friday"):
+                    owner = "Kyle"  # GMB weekly is always Kyle
+                    month_abbrev = MONTH_NAMES[month - 1][:3]
+                    display_name = f"{base_name} ({it['day']} {month_abbrev}) ({owner})"
+                else:
+                    owner = _resolve_owner(client, service, base_name)
+                    display_name = f"{base_name} ({owner})" if owner else base_name
                 ci_params = {"name": display_name[:500]}
                 if it.get("day"):
                     due_day = _clamp_day(year, month, it["day"])
