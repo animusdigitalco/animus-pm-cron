@@ -455,26 +455,41 @@ _MONTH_ABBREV = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
                  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
 
-def _gmb_friday_items(year: int, month: int) -> list[dict]:
-    """Generate the full GMB checklist for the target month:
+def _production_month(publish_year: int, publish_month: int) -> tuple[int, int]:
+    """Animus works one month ahead. The CARD is named for the publish month;
+    the WORK happens in the prior month. e.g., the 'August 2026 Marketing' card
+    has subtasks dated in July 2026."""
+    if publish_month == 1:
+        return publish_year - 1, 12
+    return publish_year, publish_month - 1
+
+
+def _gmb_friday_items(publish_year: int, publish_month: int) -> list[dict]:
+    """Generate the full GMB checklist for the PRODUCTION month (one month before
+    the publish month):
       - N Fridays × len(GMB_WEEKLY_ITEMS) weekly items
-      - + 1 monthly insights pull on the last day of the month
-    Always Kyle. Each item gets its own due date so Kyle's calendar shows the work."""
-    last_day = calendar.monthrange(year, month)[1]
-    abbrev = _MONTH_ABBREV[month - 1]
+      - + 1 monthly insights pull on the last day of the production month
+    Always Kyle. Each item gets its own due date."""
+    prod_year, prod_month = _production_month(publish_year, publish_month)
+    last_day = calendar.monthrange(prod_year, prod_month)[1]
+    abbrev = _MONTH_ABBREV[prod_month - 1]
     items = []
     for day in range(1, last_day + 1):
-        if datetime.date(year, month, day).weekday() == 4:  # 4 = Friday
+        if datetime.date(prod_year, prod_month, day).weekday() == 4:  # 4 = Friday
             for wk_item in GMB_WEEKLY_ITEMS:
                 items.append({
                     "name": f"{day} {abbrev} — {wk_item}",
                     "day": day,
+                    "_prod_year": prod_year,
+                    "_prod_month": prod_month,
                     "_gmb_kyle": True,
                 })
-    # End-of-month monthly insights pull
+    # End-of-production-month monthly insights pull
     items.append({
         "name": f"{last_day} {abbrev} — {GMB_MONTHLY_END_ITEM}",
         "day": last_day,
+        "_prod_year": prod_year,
+        "_prod_month": prod_month,
         "_gmb_kyle": True,
     })
     return items
@@ -557,11 +572,15 @@ def create_marketing_cards_for(year: int, month: int) -> dict:
             skipped.append(client)
             continue
 
+        prod_y, prod_m = _production_month(year, month)
+        prod_month_name = MONTH_NAMES[prod_m - 1]
         desc_parts = [
-            f"Monthly marketing production for **{client} — {month_name} {year}**.",
+            f"Monthly marketing — **{client}**",
+            f"📤 **Publish month:** {month_name} {year}",
+            f"🔨 **Production month:** {prod_month_name} {prod_y} *(when the work happens — checklist due dates live here)*",
             "",
             f"Each checklist below = one service line. Check items off as the work ships.",
-            f"Pat auto-creates the next month's card on the 1st at 6 AM CT.",
+            f"Pat auto-creates next month's card on the 1st at 6 AM CT.",
         ]
         link_block = _client_link_section(client)
         if link_block:
@@ -610,8 +629,15 @@ def create_marketing_cards_for(year: int, month: int) -> dict:
                     display_name = f"{base_name} ({owner})" if owner else base_name
                 ci_params = {"name": display_name[:500]}
                 if it.get("day"):
-                    due_day = _clamp_day(year, month, it["day"])
-                    ci_params["due"] = f"{year}-{month:02d}-{due_day:02d}T17:00:00.000Z"
+                    # Subtask due dates live in the PRODUCTION month (one before
+                    # the publish month the card is named for). GMB items pre-
+                    # compute the production month; non-GMB items derive it here.
+                    if it.get("_gmb_kyle"):
+                        due_y, due_m = it["_prod_year"], it["_prod_month"]
+                    else:
+                        due_y, due_m = _production_month(year, month)
+                    due_day = _clamp_day(due_y, due_m, it["day"])
+                    ci_params["due"] = f"{due_y}-{due_m:02d}-{due_day:02d}T17:00:00.000Z"
                 if owner == "Kyle":
                     ci_params["idMember"] = MEMBER_ID_KYLE
                 elif owner == "Jon":
