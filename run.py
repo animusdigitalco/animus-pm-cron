@@ -30,6 +30,18 @@ def main() -> int:
         log.error("TRELLO_KEY and TRELLO_TOKEN must be set as Fly secrets")
         return 2
 
+    # Dispatch: CRON_TYPE=weekly → weekly email card. Default → monthly cards.
+    cron_type = os.environ.get("CRON_TYPE", "monthly")
+    if cron_type == "weekly":
+        log.info("Weekly cron firing — Animus marketing email card")
+        from weekly_email import create_weekly_email_card
+        result = create_weekly_email_card()
+        if result.get("created"):
+            log.info("✓ Created: %s → %s", result.get("title"), result.get("url"))
+        else:
+            log.info("· Skipped: %s (%s)", result.get("title"), result.get("reason"))
+        return 0
+
     log.info("Animus PM cron firing — invoking monthly card creation")
     # Import after env check so module-level secret references resolve correctly
     from trello_monthly_cards import create_next_month_marketing_cards
