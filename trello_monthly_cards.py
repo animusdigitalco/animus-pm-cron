@@ -42,9 +42,9 @@ CLIENT_LABEL = {
     "D&L Oil Tools": "D&L Oil Tools",
     "Eggert Law": "Eggert Law",
     "Oklahomans for Immigrants": "Oklahomans for Immigrants",
-    "R&R Roofing": "R&R Roofing",
     "Rivercrest Cremation": "Rivercrest Cremation",
     "Ten Seven Security": "Ten Seven Security",
+    # R&R Roofing removed 2026-06-24 — no longer a recurring client
 }
 
 # Service line ordering on each client's card
@@ -140,9 +140,7 @@ CLIENT_LINKS: dict[str, dict[str, str]] = {
         "figma_main":  "https://www.figma.com/design/ZW6BorHtnwXjLSf1vaEjfQ/%5BAD%5D-Oklahomans-for-Immigrants",
         "figma_focus": "https://www.figma.com/design/ZW6BorHtnwXjLSf1vaEjfQ/-AD--Oklahomans-for-Immigrants?node-id=7436-2",
     },
-    "R&R Roofing": {
-        "figma_main":  "https://www.figma.com/design/gaRlStzAL9V74A2YQVk9l4/%5BAD%5D-R%26R-Roofing",
-    },
+    # R&R Roofing removed 2026-06-24 — no longer a recurring client
     "Rivercrest Cremation": {
         "figma_main":  "https://www.figma.com/design/fF55BHE1qAfnw4AV3fJM08/%5BAD%5D-Rivercrest-Cremation---Socials",
         "figma_focus": "https://www.figma.com/design/fF55BHE1qAfnw4AV3fJM08/-AD--Rivercrest-Cremation---Socials?node-id=4711-2",
@@ -239,14 +237,7 @@ TEMPLATE: dict[str, dict[str, list[dict]]] = {
             {"name": "Revisions made", "day": 28},
             {"name": "Posts scheduled", "day": 30},
         ],
-        "Reels": [
-            {"name": "Schedule shoot", "day": 3},
-            {"name": "Caption written", "day": 12},
-            {"name": "Video shot and edited", "day": 17},
-            {"name": "Final review & send", "day": 20},
-            {"name": "Revisions made", "day": 28},
-            {"name": "Posts scheduled", "day": 30},
-        ],
+        # Bixby Reels removed 2026-06-24 — recurring video discontinued
     },
     "D&L Oil Tools": {
         "Social Posts": [
@@ -309,21 +300,7 @@ TEMPLATE: dict[str, dict[str, list[dict]]] = {
             {"name": "Posts scheduled", "day": 30},
         ],
     },
-    "R&R Roofing": {
-        "GMB Management": [
-            {"name": "Post weekly GMB updates", "day": 7},
-            {"name": "Refresh GMB Q&A + photos", "day": 22},
-            {"name": "Reply to all new reviews", "day": 26},
-            {"name": "Monthly insights pull for client report", "day": 28},
-        ],
-        "Social Posts": [
-            {"name": "Content written", "day": 10},
-            {"name": "Designs done", "day": 17},
-            {"name": "Final review & send", "day": 20},
-            {"name": "Revisions made", "day": 28},
-            {"name": "Posts scheduled", "day": 30},
-        ],
-    },
+    # R&R Roofing removed 2026-06-24 — no longer a recurring client
     "Rivercrest Cremation": {
         "Social Posts": [
             {"name": "Content written", "day": 10},
