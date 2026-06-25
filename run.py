@@ -66,6 +66,24 @@ def main() -> int:
     for client, kind, err in result.get("errors", []):
         log.error("  ✗ %s (%s): %s", client, kind, str(err)[:200])
 
+    # Monthly billing reminder — Ten Seven Security academy hosting.
+    # Bills for the CURRENT month (the one the cron is running in), so the
+    # invoice goes out early in the month for that month's hosting.
+    import datetime
+    from billing_cards import create_ten_seven_academy_billing_card
+    today = datetime.date.today()
+    log.info("Firing Ten Seven Security academy hosting billing card for %s %d",
+             ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][today.month - 1],
+             today.year)
+    try:
+        billing = create_ten_seven_academy_billing_card(today.year, today.month)
+        if billing.get("created"):
+            log.info("  ✓ Billing card created: %s", billing.get("url"))
+        else:
+            log.info("  · Billing card: %s", billing.get("reason", "error"))
+    except Exception:
+        log.exception("Billing card creation raised")
+
     return 0 if not result.get("errors") else 1
 
 

@@ -8,7 +8,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Pure-stdlib script — no pip install needed
-COPY trello_monthly_cards.py weekly_email.py run.py run_weekly.py ./
+COPY trello_monthly_cards.py weekly_email.py billing_cards.py run.py run_weekly.py ./
 
 # Default CMD = monthly cron. Weekly scheduled machine overrides via --command.
 CMD ["python", "-u", "run.py"]
