@@ -131,6 +131,11 @@ CLIENT_LINKS: dict[str, dict[str, str]] = {
     "D&L Oil Tools": {
         "figma_main":  "https://www.figma.com/design/lV7ILeRet4rS5p1KjiD5P2/%5BAD%5D-D%26L-Oil-Tools---Socials",
         "figma_focus": "https://www.figma.com/design/lV7ILeRet4rS5p1KjiD5P2/-AD--D-L-Oil-Tools---Socials?node-id=1735-2",
+        "frame":       "https://app.frame.io/reviews/ac1db74e-0635-4716-a194-a90045ab33dc",
+        "assets": [
+            {"label": "Template Animations (Dropbox)", "url": "https://www.dropbox.com/scl/fo/kgtclf4ayfwnw1r2gcf70/AN17M5WeKiQ42o8O-RcAbsU?rlkey=dp7jbwluqfljypy46rlt3jscs&e=1&dl=0"},
+            {"label": "Figma Templates (Social Media shared — some, not all)", "url": "https://www.figma.com/design/0TR7lmh6IdTdIHMA2QoSlm/Social-Media-(shared)-(Copy)?node-id=1-354&t=u3uR9wq8tg82Pn5q-0"},
+        ],
     },
     "Eggert Law": {
         "figma_main":  "https://www.figma.com/design/wnQEhGi4j4xjPAWSSiJaKE/%5BAD%5D-Eggert-Family-Law---Socials",
@@ -163,7 +168,12 @@ def _client_link_section(client: str) -> str:
     if links.get("figma_focus"):
         lines.append(f"🎨 **Figma (focus / current month):** {links['figma_focus']}")
     if links.get("frame"):
-        lines.append(f"🎬 **Frame.io:** {links['frame']}")
+        lines.append(f"🎬 **Frame.io (Image & Video Archive):** {links['frame']}")
+    if links.get("assets"):
+        lines.append("")
+        lines.append("### Assets & Templates")
+        for a in links["assets"]:
+            lines.append(f"- **{a['label']}:** {a['url']}")
     return "\n".join(lines)
 
 # Frozen template extracted from the deduped July 2026 cards. day = day-of-month
