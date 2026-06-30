@@ -49,7 +49,7 @@ CLIENT_LABEL = {
 
 # Service line ordering on each client's card
 SERVICE_ORDER = ["Blogs", "SEO", "GMB Management", "GMB Management — Tulsa",
-                 "GMB Management — Oklahoma City", "Social Posts", "Reels", "Ads"]
+                 "GMB Management — Oklahoma City", "Social Posts", "Reels", "Preneed", "Ads"]
 
 # Trello member IDs — every monthly marketing card gets both Kyle and Jon assigned
 # so each shows up in both their "my cards" filters.
@@ -98,6 +98,13 @@ SERVICE_OWNER: dict[str, dict[str, str]] = {
         "Final review & send": "Jon",
         "Revisions made": "Kyle",
         "Posts scheduled": "Kyle",
+    },
+    "Preneed": {
+        # Bixby preneed monthly cadence — mirrors social posts pattern
+        "Preneed content written": "Kyle",
+        "Preneed designs done": "Jon",
+        "Preneed final review & send": "Jon",
+        "Preneed posts scheduled": "Kyle",
     },
 }
 
@@ -248,6 +255,13 @@ TEMPLATE: dict[str, dict[str, list[dict]]] = {
             {"name": "Posts scheduled", "day": 30},
         ],
         # Bixby Reels removed 2026-06-24 — recurring video discontinued
+        # Bixby Preneed added 2026-06-30
+        "Preneed": [
+            {"name": "Preneed content written", "day": 10},
+            {"name": "Preneed designs done", "day": 17},
+            {"name": "Preneed final review & send", "day": 20},
+            {"name": "Preneed posts scheduled", "day": 30},
+        ],
     },
     "D&L Oil Tools": {
         "Social Posts": [
